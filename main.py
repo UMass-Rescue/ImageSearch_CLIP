@@ -56,3 +56,43 @@ def generate_image_embeddings(processed_images, model):
 # Generate embeddings for all preprocessed images
 image_embeddings = generate_image_embeddings(processed_images, model)
 print(f"Generated embeddings for {image_embeddings.shape[0]} images.")
+
+# Function to generate text embeddings for a given query
+
+def generate_text_embedding(query, model):
+    text = clip.tokenize([query]).to(device)  # Tokenize the input query
+    with torch.no_grad():
+        text_embedding = model.encode_text(text)  # Generate text embeddings
+        text_embedding /= text_embedding.norm(dim=-1, keepdim=True)  # Normalize the embedding
+    return text_embedding
+
+
+import torch.nn.functional as F
+
+# Function to find the top-N matching images
+def find_matching_images(query, image_embeddings, image_paths, top_n, model):
+    # Generate the text embedding for the query
+    text_embedding = generate_text_embedding(query, model)
+    
+    # Compute cosine similarity between the text embedding and image embeddings
+    similarities = F.cosine_similarity(text_embedding, image_embeddings)
+    
+    # Get the indices of the top-N matches
+    top_n_indices = torch.topk(similarities, top_n).indices
+    
+    # Retrieve the paths of the top-N matching images
+    top_n_paths = [image_paths[i] for i in top_n_indices]
+    top_n_scores = similarities[top_n_indices].cpu().numpy()
+    
+    return top_n_paths, top_n_scores
+
+# Example query and retrieval
+query = "Empty room"
+top_n = 5  # Number of results to return
+
+# Find the top matching images based on the query
+matching_paths, similarity_scores = find_matching_images(query, image_embeddings, image_paths, top_n=top_n, model = model)
+
+# Display the results
+for i, (path, score) in enumerate(zip(matching_paths, similarity_scores)):
+    print(f"Result {i+1}: {path} (Similarity: {score:.4f})")
