@@ -7,6 +7,7 @@ def convert_image_embeddings_to_numpy(image_embeddings):
 
 def faiss_indexing(image_embeddings):
     image_embeddings = convert_image_embeddings_to_numpy(image_embeddings)
+    
     # Get the dimensions of the embeddings
     d = image_embeddings.shape[1]  # This should be 512 for CLIP
 
