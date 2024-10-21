@@ -40,4 +40,12 @@ class CLIPModel:
             image_embeddings /= image_embeddings.norm(dim=-1, keepdim=True)  # Normalize embeddings
             
         return image_embeddings
+    
+    # Function to generate text embeddings for a given query
 
+    def generate_text_embedding(self, query):
+        text = clip.tokenize([query]).to(self.device)  # Tokenize the input query
+        with torch.no_grad():
+            text_embedding = self.model.encode_text(text)  # Generate text embeddings
+            text_embedding /= text_embedding.norm(dim=-1, keepdim=True)  # Normalize the embedding
+        return text_embedding
