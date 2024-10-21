@@ -1,6 +1,7 @@
 import torch
 import faiss
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from dotenv import load_dotenv
 import os
 
@@ -8,6 +9,15 @@ import os
 class DataIndexing:
     def __init__(self, dataset_name):
         self.dataset_name = dataset_name
+
+    # Load environment variables from the .env file
+        load_dotenv()
+
+        self.DB_HOST = os.getenv("DB_HOST", "localhost")
+        self.DB_PORT = os.getenv("DB_PORT", "5432")
+        self.DB_NAME = os.getenv("DB_NAME", "image_search")
+        self.DB_USER = os.getenv("DB_USER")
+        self.DB_PASSWORD = os.getenv("DB_PASSWORD")
 
     def _convert_image_embeddings_to_numpy(self, image_embeddings):
         return image_embeddings.cpu().numpy() if torch.is_tensor(image_embeddings) else image_embeddings
@@ -88,4 +98,33 @@ class DataIndexing:
         conn.commit()
         cursor.close()
         conn.close()
+    
+    def fetch_metadata_by_indices(self, indices):
+        # Fetch image paths from the dataset-specific table based on indices
+        conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
+        cursor = conn.cursor()
+
+        table_name = f"metadata_{self.dataset_name}"  # Dataset-specific table
+        # Create a string of placeholders for the number of indices
+        placeholders = ', '.join(['%s'] * len(indices))
+
+        # Construct the SQL query with the placeholders
+        query = f'''
+            SELECT image_index, image_path 
+            FROM metadata_coco 
+            WHERE image_index IN ({placeholders})
+        '''
+
+        # Execute the query with the list of indices
+        cursor.execute(query, indices)  # Pass the list directly
+        
+        # Fetch the results (returns list of tuples (image_index, image_path))
+        results = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+
+        # Create a dictionary mapping image_index to image_path
+        metadata = {index: path for index, path in results}
+        return metadata
     
