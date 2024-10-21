@@ -4,10 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-numpy = "*"
-clip = {git = "https://github.com/openai/CLIP.git"}
 torch = "*"
-faiss = "*"
+clip = {git = "https://github.com/openai/CLIP.git"}
+faiss-cpu = "*"
+psycopg2 = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
