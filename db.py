@@ -28,6 +28,30 @@ class DataIndexing:
 
         return index
     
+    def _create_database_if_not_exists(self):
+        """
+        Create the database if it does not exist.
+        """
+        # Connect to the default database 'postgres' to check for the target database
+        conn = psycopg2.connect(dbname='postgres', user=self.DB_USER, password=self.DB_PASSWORD, host=self.DB_HOST, port=self.DB_PORT)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)  # Allows creating a new database
+        
+        cursor = conn.cursor()
+
+        # Check if the database exists
+        cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = '{self.DB_NAME}'")
+        exists = cursor.fetchone()
+
+        if not exists:
+            # If the database does not exist, create it
+            cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
+            print(f"Database '{self.DB_NAME}' created successfully.")
+        else:
+            print(f"Database '{self.DB_NAME}' already exists.")
+
+        cursor.close()
+        conn.close()
+    
     def create_db_table(self):
 
         self._create_database_if_not_exists()
