@@ -19,3 +19,5 @@ print(f"Loaded and preprocessed {len(processed_images)} images.")
 image_embeddings = clip_model.generate_image_embeddings(processed_images)
 print(f"Generated embeddings for {image_embeddings.shape[0]} images.")
 
+data_indexing = DataIndexing(dataset_name)
+faiss_index = data_indexing.faiss_indexing(image_embeddings)
