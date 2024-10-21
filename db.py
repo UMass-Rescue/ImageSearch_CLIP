@@ -1,5 +1,6 @@
 import torch
 import faiss
+import psycopg2
 from dotenv import load_dotenv
 import os
 
@@ -27,4 +28,40 @@ class DataIndexing:
 
         return index
     
+    def create_db_table(self):
+
+        self._create_database_if_not_exists()
+
+        # Create a connection to the PostgreSQL database
+        conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
+        cursor = conn.cursor()
+
+        # Dynamically create a table for storing image metadata for a specific dataset
+        table_name = f"metadata_{self.dataset_name}"  # Use dataset-specific table name
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS {table_name} (
+                image_index INTEGER,
+                image_path TEXT
+            )
+        ''')
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+    def insert_metadata(self, image_paths):
+        # Insert image metadata into a specific dataset's table
+        conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
+        cursor = conn.cursor()
+
+        table_name = f"metadata_{self.dataset_name}"  # Dataset-specific table
+        for idx, path in enumerate(image_paths):
+            cursor.execute(f'''
+                INSERT INTO {table_name} (image_index, image_path)
+                VALUES (%s, %s)
+            ''', (idx, path))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
     

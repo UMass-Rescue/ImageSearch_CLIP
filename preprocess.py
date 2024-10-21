@@ -21,3 +21,8 @@ print(f"Generated embeddings for {image_embeddings.shape[0]} images.")
 
 data_indexing = DataIndexing(dataset_name)
 faiss_index = data_indexing.faiss_indexing(image_embeddings)
+
+# Create table in database with the table name as dataset_name
+data_indexing.create_db_table()
+# Insert metadata into the created table
+data_indexing.insert_metadata(image_paths)
