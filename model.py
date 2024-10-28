@@ -3,6 +3,8 @@ import clip
 import torch
 import os
 from PIL import Image
+from db import DataIndexing
+import faiss
 
 class CLIPModel:
     def __init__(self):
@@ -11,7 +13,7 @@ class CLIPModel:
         self.model, self.preprocess = clip.load("ViT-B/32", device=self.device)
 
     # Function to load and preprocess images using CLIP
-    def load_and_preprocess_images(self, image_dir):
+    def _load_and_preprocess_images(self, image_dir):
         image_paths = []
         processed_images = []
         
@@ -28,7 +30,7 @@ class CLIPModel:
         return image_paths, processed_images
 
     # Function to generate image embeddings
-    def generate_image_embeddings(self, processed_images):
+    def _generate_image_embeddings(self, processed_images):
         with torch.no_grad():
             image_embeddings = []
             for image in processed_images:
@@ -43,9 +45,53 @@ class CLIPModel:
     
     # Function to generate text embeddings for a given query
 
-    def generate_text_embedding(self, query):
+    def _generate_text_embedding(self, query):
         text = clip.tokenize([query]).to(self.device)  # Tokenize the input query
         with torch.no_grad():
             text_embedding = self.model.encode_text(text)  # Generate text embeddings
             text_embedding /= text_embedding.norm(dim=-1, keepdim=True)  # Normalize the embedding
         return text_embedding
+    
+    def _save_to_db(self, dataset_name, image_embeddings, image_paths):
+        data_indexing = DataIndexing(dataset_name)
+        faiss_index = data_indexing.faiss_indexing(image_embeddings)
+
+        # Create table in database with the table name as dataset_name
+        data_indexing.create_db_table()
+        # Insert metadata into the created table
+        data_indexing.insert_metadata(image_paths)
+    
+    def preprocess_images(self, image_dir: str, dataset_name: str):
+        # Load and preprocess all images
+        image_paths, processed_images = self._load_and_preprocess_images(image_dir)
+        print(f"Loaded and preprocessed {len(processed_images)} images.")
+
+        # Generate embeddings for all preprocessed images
+        image_embeddings = self._generate_image_embeddings(processed_images)
+        print(f"Generated embeddings for {image_embeddings.shape[0]} images.")
+
+    def search(self, query: str, dataset_name: str):
+        query_embedding = self._generate_text_embedding(query)
+
+        # Load the saved FAISS index
+        index = faiss.read_index(f"{dataset_name}_image_embeddings.index")
+
+        # Search the FAISS index for the top 5 nearest neighbors
+        k = 5  # Number of nearest neighbors
+        distances, indices = index.search(query_embedding, k)
+
+        # Convert the FAISS indices array to a list for use in SQL queries
+        top_n_indices = indices[0].tolist()  # List of top n indices returned by FAISS
+
+        # Fetch the image paths for the top-n returned indices from the PostgreSQL database
+        data_handler = DataIndexing(dataset_name)
+        metadata = data_handler.fetch_metadata_by_indices(top_n_indices)
+
+        # Combine FAISS results with metadata and display the results
+        top_n_results = [(metadata[i], distances[0][j]) for j, i in enumerate(top_n_indices) if i in metadata]
+
+        # Display results
+        for i, (path, score) in enumerate(top_n_results):
+            print(f"Result {i+1}: {path} (Distance: {score:.4f})")
+
+
