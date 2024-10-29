@@ -24,7 +24,7 @@ class CLIPModel:
                 
                 # Load and preprocess the image
                 image = Image.open(img_path).convert("RGB")
-                image = self.preprocess(image).unsqueeze(0).to(self.device)  # Preprocess and move to device (GPU or CPU)
+                image = self.preprocess(image).unsqueeze(0).to(self.device)  # type: ignore # Preprocess and move to device (GPU or CPU)
                 processed_images.append(image)
         
         return image_paths, processed_images
@@ -70,7 +70,13 @@ class CLIPModel:
         image_embeddings = self._generate_image_embeddings(processed_images)
         print(f"Generated embeddings for {image_embeddings.shape[0]} images.")
 
+        self._save_to_db(dataset_name, image_embeddings, image_paths)
+        print(f"Embeddings saved to database")
+
+        return f"{dataset_name} dataset processed successfully!!"
+
     def search(self, query: str, dataset_name: str):
+        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         query_embedding = self._generate_text_embedding(query)
 
         # Load the saved FAISS index
@@ -89,9 +95,11 @@ class CLIPModel:
 
         # Combine FAISS results with metadata and display the results
         top_n_results = [(metadata[i], distances[0][j]) for j, i in enumerate(top_n_indices) if i in metadata]
-
+        results = []
         # Display results
         for i, (path, score) in enumerate(top_n_results):
             print(f"Result {i+1}: {path} (Distance: {score:.4f})")
-
+            results.append({'result': path})
+        
+        return results
 

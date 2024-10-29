@@ -1,3 +1,4 @@
 coco
 *.index
 .env
+__pycache__
