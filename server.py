@@ -31,7 +31,7 @@ def search_by_text(inputs: SearchInput, parameters: SearchParameters) -> Respons
     print("Inside server")
     text_query = inputs['text_query'].text
     print(text_query)
-    results = model.search(text_query, parameters['dataset_name'])
+    results = model.search_by_text(text_query, parameters['dataset_name'])
     print(results)
     image_results = [FileResponse(file_type=FileType.IMG, path=res["result"]) for res in results]
     response = BatchFileResponse(files=image_results)
