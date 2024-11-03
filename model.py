@@ -55,7 +55,7 @@ class CLIPModel:
     def _generate_image_embedding_from_input(self, image_path):
         # Load and preprocess the image
         image = Image.open(image_path).convert("RGB")
-        image = self.preprocess(image).unsqueeze(0).to(self.device)  # Preprocess and move to device (GPU or CPU)
+        image = self.preprocess(image).unsqueeze(0).to(self.device)  # type: ignore # Preprocess and move to device (GPU or CPU)
         
         # Generate embedding
         with torch.no_grad():
@@ -86,17 +86,14 @@ class CLIPModel:
         print(f"Embeddings saved to database")
 
         return f"{dataset_name} dataset processed successfully!!"
-
-    def search_by_text(self, query: str, dataset_name: str):
-        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-        query_embedding = self._generate_text_embedding(query)
-
+    
+    def _search(self, embedding, dataset_name):
         # Load the saved FAISS index
         index = faiss.read_index(f"{dataset_name}_image_embeddings.index")
 
         # Search the FAISS index for the top 5 nearest neighbors
         k = 5  # Number of nearest neighbors
-        distances, indices = index.search(query_embedding, k)
+        distances, indices = index.search(embedding, k)
 
         # Convert the FAISS indices array to a list for use in SQL queries
         top_n_indices = indices[0].tolist()  # List of top n indices returned by FAISS
@@ -115,27 +112,12 @@ class CLIPModel:
         
         return results
 
+    def search_by_text(self, query: str, dataset_name: str):
+        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+        query_embedding = self._generate_text_embedding(query)
+        return self._search(query_embedding, dataset_name)
+        
     def search_by_image(self, image_path: str, dataset_name: str):
-        query_embedding = self._generate_image_embedding_from_input(image_path)
-
-        # Load the saved FAISS index
-        index = faiss.read_index(f"{dataset_name}_image_embeddings.index")
-
-        # Search the FAISS index for the top 5 nearest neighbors
-        k = 5  # Number of nearest neighbors
-        distances, indices = index.search(query_embedding, k)
-
-        # Convert the FAISS indices array to a list for use in SQL queries
-        top_n_indices = indices[0].tolist()  # List of top n indices returned by FAISS
-
-        # Fetch the image paths for the top-n returned indices from the PostgreSQL database
-        data_handler = DataIndexing(dataset_name)
-        metadata = data_handler.fetch_metadata_by_indices(top_n_indices)
-
-        # Combine FAISS results with metadata and display the results
-        top_n_results = [(metadata[i], distances[0][j]) for j, i in enumerate(top_n_indices) if i in metadata]
-
-        # Display results
-        for i, (path, score) in enumerate(top_n_results):
-            print(f"Result {i+1}: {path} (Distance: {score:.4f})")
+        image_embedding = self._generate_image_embedding_from_input(image_path)
+        return self._search(image_embedding, dataset_name)
 

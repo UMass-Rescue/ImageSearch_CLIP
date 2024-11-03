@@ -2,3 +2,4 @@ coco
 *.index
 .env
 __pycache__
+inputs
