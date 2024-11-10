@@ -24,7 +24,8 @@ inputs = {
     )
 }
 parameters = {
-    "dataset_name": "coco"
+    "dataset_name": "coco",
+    "num_results": 3
 }
 response = client.request(inputs, parameters)  # Send a request to the server
 print(response)  # Print the response
@@ -38,12 +39,14 @@ client = MLClient(url)  # Create an instance of the MLClient object
 inputs = {
     "image_path": Input(
         root=FileInput.model_validate(
-            {"path": "./inputs/redshirtman.png"}
+            #{"path": "./inputs/redshirtman.png"}
+            {"path": "./coco/train/000000000612_jpg.rf.656879428df938a1a000bc255a193ccd.jpg"}
         )
     )
 }
 parameters = {
-    "dataset_name": "coco"
+    "dataset_name": "coco",
+    "num_results": 3
 }
 response = client.request(inputs, parameters)  # Send a request to the server
 print(response)  # Print the response
