@@ -87,12 +87,13 @@ class CLIPModel:
 
         return f"{dataset_name} dataset processed successfully!!"
     
-    def _search(self, embedding, dataset_name):
+    def _search(self, embedding, dataset_name, k):
         # Load the saved FAISS index
         index = faiss.read_index(f"{dataset_name}_image_embeddings.index")
 
         # Search the FAISS index for the top 5 nearest neighbors
-        k = 5  # Number of nearest neighbors
+        #k = 5  # Number of nearest neighbors
+        k = k or 5
         distances, indices = index.search(embedding, k)
 
         # Convert the FAISS indices array to a list for use in SQL queries
@@ -112,12 +113,12 @@ class CLIPModel:
         
         return results
 
-    def search_by_text(self, query: str, dataset_name: str):
+    def search_by_text(self, query: str, dataset_name: str, k: int):
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         query_embedding = self._generate_text_embedding(query)
-        return self._search(query_embedding, dataset_name)
+        return self._search(query_embedding, dataset_name, k)
         
-    def search_by_image(self, image_path: str, dataset_name: str):
+    def search_by_image(self, image_path: str, dataset_name: str, k: int):
         image_embedding = self._generate_image_embedding_from_input(image_path)
-        return self._search(image_embedding, dataset_name)
+        return self._search(image_embedding, dataset_name, k)
 

@@ -25,11 +25,12 @@ class TxtInput(TypedDict):
 
 class SearchParameters(TypedDict):
     dataset_name: str
+    num_results: int
 
 @server.route("/search_by_text")
 def search_by_text(inputs: TxtInput, parameters: SearchParameters) -> ResponseBody:
     text_query = inputs['text_query'].text
-    results = model.search_by_text(text_query, parameters['dataset_name'])
+    results = model.search_by_text(text_query, parameters['dataset_name'], parameters['num_results'])
     image_results = [FileResponse(file_type=FileType.IMG, path=res["result"]) for res in results]
     response = BatchFileResponse(files=image_results)
     return ResponseBody(root=response)
@@ -40,7 +41,7 @@ class ImageInput(TypedDict):
 @server.route("/search_by_image")
 def search_by_image(inputs: ImageInput, parameters: SearchParameters) -> ResponseBody:
     image_path = inputs['image_path'].path
-    results = model.search_by_text(image_path, parameters['dataset_name'])
+    results = model.search_by_image(image_path, parameters['dataset_name'], parameters['num_results'])
     image_results = [FileResponse(file_type=FileType.IMG, path=res["result"]) for res in results]
     response = BatchFileResponse(files=image_results)
     return ResponseBody(root=response)
