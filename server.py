@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, List
 from flask_ml.flask_ml_server import MLServer
 from flask_ml.flask_ml_server.models import DirectoryInput, ResponseBody, TextResponse, TextInput, FileResponse, BatchFileResponse, FileType, FileInput
 
@@ -6,6 +6,8 @@ from model import CLIPModel
 
 model = CLIPModel()
 server = MLServer(__name__)
+
+available_datasets: List[str] = []
 
 class DatasetProcessingInput(TypedDict):
     input_dir: DirectoryInput
@@ -15,6 +17,7 @@ class DatasetProcessingParameters(TypedDict):
 
 @server.route("/dataset_processing")
 def dataset_processing(inputs: DatasetProcessingInput, parameters: DatasetProcessingParameters) -> ResponseBody:
+    available_datasets.append(parameters['dataset_name'])
     directory_path = inputs['input_dir'].path
     result = model.preprocess_images(directory_path, parameters['dataset_name'])
     response = TextResponse(value=result)
