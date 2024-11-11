@@ -1,5 +1,5 @@
 from typing import TypedDict, List
-from flask_ml.flask_ml_server import MLServer
+from flask_ml.flask_ml_server import MLServer, load_file_as_string
 from flask_ml.flask_ml_server.models import (
     TaskSchema, DirectoryInput, TextInput, FileType, FileInput, InputSchema, InputType, 
     ParameterSchema, TextParameterDescriptor, EnumParameterDescriptor, EnumVal, IntParameterDescriptor, 
@@ -9,6 +9,12 @@ from model import CLIPModel
 
 model = CLIPModel()
 server = MLServer(__name__)
+server.add_app_metadata(
+    name="Image Search using CLIP",
+    author="Sahithi Singireddy, Sravani Gona",
+    version="0.1.0",
+    info=load_file_as_string("README.md"),
+)
 
 available_datasets: List[str] = []
 
@@ -87,7 +93,7 @@ class SearchParameters(TypedDict):
 
 @server.route(
         "/search_by_text",
-        order=0,
+        order=1,
         short_title="Search Images by Text Query",
         task_schema_func=get_search_by_text_task_schema)
 def search_by_text(inputs: TxtInput, parameters: SearchParameters) -> ResponseBody:
@@ -97,10 +103,44 @@ def search_by_text(inputs: TxtInput, parameters: SearchParameters) -> ResponseBo
     response = BatchFileResponse(files=image_results)
     return ResponseBody(root=response)
 
+def get_search_by_image_task_schema() -> TaskSchema:
+    return TaskSchema(
+        inputs=[
+            InputSchema(
+                key="image_path",
+                label="Image Path",
+                input_type=InputType.FILE,
+            )
+        ],
+        parameters=[
+            ParameterSchema(
+                key="dataset_name",
+                label="DataSet Name",
+                value=EnumParameterDescriptor(
+                    enum_vals=[
+                        EnumVal(key=dataset_name, label=dataset_name)
+                        for dataset_name in available_datasets
+                    ],
+                    message_when_empty="No datasets found",
+                    default=available_datasets[0] if len(available_datasets) > 0 else "",
+                ),
+            ),
+            ParameterSchema(
+                key="num_results",
+                label="Number of Results",
+                value=IntParameterDescriptor(default=5),
+            ),
+        ],
+    )
+
 class ImageInput(TypedDict):
     image_path: FileInput
 
-@server.route("/search_by_image")
+@server.route(
+        "/search_by_image",
+        order=2,
+        short_title="Search Images by Image File",
+        task_schema_func=get_search_by_image_task_schema)
 def search_by_image(inputs: ImageInput, parameters: SearchParameters) -> ResponseBody:
     image_path = inputs['image_path'].path
     results = model.search_by_image(image_path, parameters['dataset_name'], parameters['num_results'])
