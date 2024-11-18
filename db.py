@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from dotenv import load_dotenv
 import os
+import numpy as np
 
 
 class DataIndexing:
@@ -24,6 +25,9 @@ class DataIndexing:
 
     def faiss_indexing(self, image_embeddings):
         image_embeddings = self._convert_image_embeddings_to_numpy(image_embeddings)
+
+        # Normalize embeddings (L2 normalization)
+        image_embeddings = image_embeddings / np.linalg.norm(image_embeddings, axis=1, keepdims=True)
         
         # Get the dimensions of the embeddings
         d = image_embeddings.shape[1]  # This should be 512 for CLIP
