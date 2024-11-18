@@ -17,15 +17,16 @@ class CLIPModel:
         image_paths = []
         processed_images = []
         
-        for img_file in os.listdir(image_dir):
-            if img_file.endswith(('jpg', 'jpeg', 'png')):
-                img_path = os.path.join(image_dir, img_file)
-                image_paths.append(img_path)
-                
-                # Load and preprocess the image
-                image = Image.open(img_path).convert("RGB")
-                image = self.preprocess(image).unsqueeze(0).to(self.device)  # type: ignore # Preprocess and move to device (GPU or CPU)
-                processed_images.append(image)
+        for root, _, files in os.walk(image_dir):
+            for img_file in files:
+                if img_file.endswith(('jpg', 'jpeg', 'png')):
+                    img_path = os.path.join(image_dir, img_file)
+                    image_paths.append(img_path)
+                    
+                    # Load and preprocess the image
+                    image = Image.open(img_path).convert("RGB")
+                    image = self.preprocess(image).unsqueeze(0).to(self.device)  # type: ignore # Preprocess and move to device (GPU or CPU)
+                    processed_images.append(image)
         
         return image_paths, processed_images
 
@@ -88,6 +89,9 @@ class CLIPModel:
         return f"{dataset_name} dataset processed successfully!!"
     
     def _search(self, embedding, dataset_name, k):
+        # Ensure the embedding is on the CPU before passing to FAISS
+        embedding = embedding.cpu()
+        
         # Load the saved FAISS index
         index = faiss.read_index(f"{dataset_name}_image_embeddings.index")
 
