@@ -1,5 +1,5 @@
 # ImageSearch_CLIP
-This project provides a scalable solution for efficient image search using OpenAI's CLIP model, FAISS, and PostgreSQL. Initially, it processes large image datasets (e.g., CIFAR-10) to generate embeddings for each image using the CLIP model. These embeddings are indexed using FAISS for fast similarity searches, while a PostgreSQL database stores mappings of image embeddings to their file paths.
+This project provides a scalable solution for efficient image search using OpenAI's CLIP model, FAISS, and PostgreSQL. Initially, it processes large image datasets to generate embeddings for each image using the CLIP model. These embeddings are indexed using FAISS for fast similarity searches, while a PostgreSQL database stores mappings of indexes to their file paths.
 
 Once the setup is complete, users can input a query in the form of text or an image. The system generates an embedding for the query using the CLIP model, searches the FAISS index for similar embeddings, and retrieves the corresponding image paths from the PostgreSQL database.
 
@@ -22,6 +22,15 @@ pipenv shell
 **3. Install dependencies**
 ```
 pipenv install
+```
+**4. Configure Database**
+
+Create a `.env` file and add the following properties
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=12345
 ```
 
 ## Flask-ML
