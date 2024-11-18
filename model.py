@@ -89,6 +89,9 @@ class CLIPModel:
         return f"{dataset_name} dataset processed successfully!!"
     
     def _search(self, embedding, dataset_name, k):
+        # Ensure the embedding is on the CPU before passing to FAISS
+        embedding = embedding.cpu()
+        
         # Load the saved FAISS index
         index = faiss.read_index(f"{dataset_name}_image_embeddings.index")
 
