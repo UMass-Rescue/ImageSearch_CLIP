@@ -25,13 +25,26 @@ pipenv install
 ```
 **4. Configure Database**
 
-Create a `.env` file and add the following properties
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=*
-```
+- Create a .env file in the root directory of your project if it doesn't already exist.
+
+- Add the following properties to the .env file:
+  ```
+  DB_HOST=localhost
+  DB_PORT=5432
+  DB_USER=postgres
+  DB_PASSWORD=*****
+  ```
+  **Note**: Make sure to update the DB_HOST, DB_PORT, DB_USER, and DB_PASSWORD values according to your local database setup:
+  
+    - DB_HOST: Specify the host where your database is running (e.g., localhost for a local setup or the IP address/domain for a remote database).
+  
+    - DB_PORT: Set the port number for your database (default for PostgreSQL is 5432).
+  
+    - DB_USER: Enter your database username.
+  
+    - DB_PASSWORD: Provide the correct password for your database user.
+
+- Save the .env file with the updated values.
 
 ## Flask-ML
 
