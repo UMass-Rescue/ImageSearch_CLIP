@@ -107,9 +107,9 @@ class CLIPModel:
         top_n_results = [(metadata[i], distances[0][j]) for j, i in enumerate(top_n_indices) if i in metadata]
         results = []
         # Display results
-        for i, (path, score) in enumerate(top_n_results):
-            print(f"Result {i+1}: {path} (Distance: {score:.4f})")
-            results.append({'result': path})
+        for i, (file_path, score) in enumerate(top_n_results):
+            print(f"Result {i+1}: {file_path} (Distance: {score:.4f})")
+            results.append({'result': file_path, 'title': os.path.splitext(os.path.basename(file_path))[0]})
         
         return results
 
