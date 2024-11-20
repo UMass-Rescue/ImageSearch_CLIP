@@ -115,7 +115,7 @@ class DataIndexing:
         # Construct the SQL query with the placeholders
         query = f'''
             SELECT image_index, image_path 
-            FROM metadata_coco 
+            FROM metadata_{self.dataset_name} 
             WHERE image_index IN ({placeholders})
         '''
 
