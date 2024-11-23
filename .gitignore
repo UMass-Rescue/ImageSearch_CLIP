@@ -3,3 +3,4 @@ coco
 .env
 __pycache__
 inputs
+faiss_index

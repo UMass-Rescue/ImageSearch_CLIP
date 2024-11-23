@@ -28,7 +28,7 @@ class CLIPModel:
                     
                     # Load and preprocess the image
                     image = Image.open(img_path).convert("RGB")
-                    image = self.preprocess(image).unsqueeze(0).to(self.device)  # type: ignore # Preprocess and move to device (GPU or CPU)
+                    image = self.preprocess(image).unsqueeze(0).to(self.device)  # Preprocess and move to device (GPU or CPU)
                     processed_images.append(image)
         
         return image_paths, processed_images
