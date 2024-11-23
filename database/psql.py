@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from dotenv import load_dotenv
+from util.util import dataset_storage_name
 import os
 
 class PSQLDatabase:
@@ -41,7 +42,7 @@ class PSQLDatabase:
         cursor = conn.cursor()
 
         # Dynamically create a table for storing image metadata for a specific dataset
-        table_name = f"{dataset_name}_dataset"  # Use dataset-specific table name
+        table_name = dataset_storage_name(dataset_name)  # Use dataset-specific table name
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {table_name} (
                 image_index INTEGER,
@@ -58,7 +59,7 @@ class PSQLDatabase:
         conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
         cursor = conn.cursor()
 
-        table_name = f"{dataset_name}_dataset"  # Dataset-specific table
+        table_name = dataset_storage_name(dataset_name)  # Dataset-specific table
         for idx, path in enumerate(image_paths):
             cursor.execute(f'''
                 INSERT INTO {table_name} (image_index, image_path)
@@ -74,7 +75,7 @@ class PSQLDatabase:
         conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
         cursor = conn.cursor()
 
-        table_name = f"{dataset_name}_dataset"  # Dataset-specific table
+        table_name = dataset_storage_name(dataset_name)  # Dataset-specific table
         # Create a string of placeholders for the number of indices
         placeholders = ', '.join(['%s'] * len(indices))
 
@@ -104,7 +105,7 @@ class PSQLDatabase:
     
     def fetch_image_paths(self, dataset_name, indices):
         results = self._fetch_images(dataset_name, indices)
-        
+
         # Create a dictionary mapping image_index to image_path
         image_paths = {index: path for index, path in results}
         return image_paths

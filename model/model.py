@@ -2,8 +2,8 @@ import clip
 import torch
 import os
 from PIL import Image
-from database.faiss_db import FAISSDatabase
-from database.psql_db import PSQLDatabase
+from database.faiss import FAISSDatabase
+from database.psql import PSQLDatabase
 
 class CLIPModel:
     def __init__(self):
@@ -48,7 +48,6 @@ class CLIPModel:
         return image_embeddings
     
     # Function to generate text embeddings for a given query
-
     def _generate_text_embedding(self, query):
         text = clip.tokenize([query]).to(self.device)  # Tokenize the input query
         with torch.no_grad():
@@ -95,10 +94,10 @@ class CLIPModel:
         images_data = self.psql_db.fetch_image_paths(dataset_name, top_k_indices)
 
         # Combine FAISS results with metadata and display the results
-        top_n_results = [(images_data[i], top_k_distances[j]) for j, i in enumerate(top_k_indices) if i in images_data]
+        top_k_results = [(images_data[i], top_k_distances[j]) for j, i in enumerate(top_k_indices) if i in images_data]
         results = []
         # Display results
-        for i, (file_path, score) in enumerate(top_n_results):
+        for i, (file_path, score) in enumerate(top_k_results):
             print(f"Result {i+1}: {file_path} (Distance: {score:.4f})")
             results.append({'result': file_path, 'title': os.path.splitext(os.path.basename(file_path))[0]})
         
