@@ -15,6 +15,7 @@ class CLIPModel:
         # Databases
         self.faiss_db = FAISSDatabase()
         self.psql_db = PSQLDatabase()
+        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
     # Function to load and preprocess images using CLIP
     def _load_and_preprocess_images(self, image_dir):
@@ -105,7 +106,6 @@ class CLIPModel:
         results = []
         # Display results
         for i, (file_path, score) in enumerate(top_k_results):
-            print(f"Result {i+1}: {file_path} (Distance: {score:.4f})")
             results.append({'result': file_path, 'title': os.path.splitext(os.path.basename(file_path))[0]})
         
         return results
