@@ -48,10 +48,15 @@ class DatasetProcessingParameters(TypedDict):
         short_title="Ingest Dataset into the model",
         task_schema_func=get_dataset_processing_task_schema)
 def dataset_processing(inputs: DatasetProcessingInput, parameters: DatasetProcessingParameters) -> ResponseBody:
-    available_datasets.append(parameters["dataset_name"])
+    dataset_name = parameters["dataset_name"]
+
+    if dataset_name in available_datasets:
+        raise ValueError("Dataset name already exists.")
+    
     directory_path = inputs['input_dir'].path
     result = model.preprocess_images(directory_path, parameters['dataset_name'])
     response = TextResponse(value=result)
+    available_datasets.append(parameters["dataset_name"])
     return ResponseBody(root=response)
 
 def get_search_by_text_task_schema() -> TaskSchema:

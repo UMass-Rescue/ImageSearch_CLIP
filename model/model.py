@@ -4,6 +4,7 @@ import os
 from PIL import Image
 from database.faiss import FAISSDatabase
 from database.psql import PSQLDatabase
+from util.util import remove_spaces, is_image_file
 
 class CLIPModel:
     def __init__(self):
@@ -22,13 +23,13 @@ class CLIPModel:
         
         for root, _, files in os.walk(image_dir):
             for img_file in files:
-                if img_file.endswith(('jpg', 'jpeg', 'png')):
-                    img_path = os.path.join(image_dir, img_file)
+                img_path = os.path.join(root, img_file)
+                if is_image_file(img_path):
                     image_paths.append(img_path)
                     
                     # Load and preprocess the image
                     image = Image.open(img_path).convert("RGB")
-                    image = self.preprocess(image).unsqueeze(0).to(self.device)  # Preprocess and move to device (GPU or CPU)
+                    image = self.preprocess(image).unsqueeze(0).to(self.device)  # type: ignore # Preprocess and move to device (GPU or CPU)
                     processed_images.append(image)
         
         return image_paths, processed_images
@@ -75,8 +76,12 @@ class CLIPModel:
         self.psql_db.store_image_paths(dataset_name, image_paths)
     
     def preprocess_images(self, image_dir: str, dataset_name: str):
+        dataset_name = remove_spaces(dataset_name)
+
         # Load and preprocess all images
         image_paths, processed_images = self._load_and_preprocess_images(image_dir)
+        if len(processed_images) == 0:
+            raise ValueError("Empty directory, no images found.")
         print(f"Loaded and preprocessed {len(processed_images)} images.")
 
         # Generate embeddings for all preprocessed images
@@ -89,6 +94,8 @@ class CLIPModel:
         return f"{dataset_name} dataset processed successfully!!"
     
     def _search(self, dataset_name, embedding, k):
+        dataset_name = remove_spaces(dataset_name)
+
         top_k_distances, top_k_indices = self.faiss_db.search_faiss(dataset_name, embedding, k)
 
         images_data = self.psql_db.fetch_image_paths(dataset_name, top_k_indices)
@@ -104,10 +111,16 @@ class CLIPModel:
         return results
 
     def search_by_text(self, query: str, dataset_name: str, k: int):
+        if query is None or query.strip() == "":
+            raise ValueError("Invalid input text query.")
+        
         os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         query_embedding = self._generate_text_embedding(query)
         return self._search(dataset_name, query_embedding, k)
         
     def search_by_image(self, image_path: str, dataset_name: str, k: int):
+        if not is_image_file(image_path):
+            raise ValueError("Invalid or corrupted input image.")
+
         image_embedding = self._generate_image_embedding_from_input(image_path)
         return self._search(dataset_name, image_embedding, k)
