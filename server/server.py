@@ -6,8 +6,10 @@ from flask_ml.flask_ml_server.models import (
     ResponseBody, TextResponse, FileResponse, BatchFileResponse)
 
 from model.model import CLIPModel
+from database.psql import PSQLDatabase
 
 model = CLIPModel()
+db = PSQLDatabase()
 server = MLServer(__name__)
 server.add_app_metadata(
     name="Image Search using CLIP",
@@ -50,13 +52,12 @@ class DatasetProcessingParameters(TypedDict):
 def dataset_processing(inputs: DatasetProcessingInput, parameters: DatasetProcessingParameters) -> ResponseBody:
     dataset_name = parameters["dataset_name"]
 
-    if dataset_name in available_datasets:
+    if dataset_name in db.get_all_datasets():
         raise ValueError("Dataset name already exists.")
     
     directory_path = inputs['input_dir'].path
     result = model.preprocess_images(directory_path, parameters['dataset_name'])
     response = TextResponse(value=result)
-    available_datasets.append(parameters["dataset_name"])
     return ResponseBody(root=response)
 
 def get_search_by_text_task_schema() -> TaskSchema:
@@ -75,7 +76,7 @@ def get_search_by_text_task_schema() -> TaskSchema:
                 value=EnumParameterDescriptor(
                     enum_vals=[
                         EnumVal(key=dataset_name, label=dataset_name)
-                        for dataset_name in available_datasets
+                        for dataset_name in db.get_all_datasets()
                     ],
                     message_when_empty="No datasets found",
                     default=available_datasets[0] if len(available_datasets) > 0 else "",
@@ -124,7 +125,7 @@ def get_search_by_image_task_schema() -> TaskSchema:
                 value=EnumParameterDescriptor(
                     enum_vals=[
                         EnumVal(key=dataset_name, label=dataset_name)
-                        for dataset_name in available_datasets
+                        for dataset_name in db.get_all_datasets()
                     ],
                     message_when_empty="No datasets found",
                     default=available_datasets[0] if len(available_datasets) > 0 else "",
