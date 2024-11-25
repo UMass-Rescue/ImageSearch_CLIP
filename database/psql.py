@@ -14,6 +14,10 @@ class PSQLDatabase:
         self.DB_NAME = os.getenv("DB_NAME", "image_search")
         self.DB_USER = os.getenv("DB_USER")
         self.DB_PASSWORD = os.getenv("DB_PASSWORD")
+        self.dataset_table = "datasets"
+
+        self._create_database_if_not_exists()
+        self._create_datasets_table_if_not_exists()
     
     def _create_database_if_not_exists(self):
         # Connect to the default database 'postgres' to check for the target database
@@ -30,13 +34,26 @@ class PSQLDatabase:
             # If the database does not exist, create it
             cursor.execute(f"CREATE DATABASE {self.DB_NAME}")
             print(f"Database '{self.DB_NAME}' created successfully.")
-        else:
-            print(f"Database '{self.DB_NAME}' already exists.")
 
         cursor.close()
         conn.close()
+
+    def _create_datasets_table_if_not_exists(self):
+        conn = psycopg2.connect(dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD, host=self.DB_HOST, port=self.DB_PORT)
+        cursor = conn.cursor()
+
+        # Create the table if it does not exist
+        create_table_query = f"""
+        CREATE TABLE IF NOT EXISTS {self.dataset_table} (
+            name TEXT PRIMARY KEY
+        );
+        """
+        cursor.execute(create_table_query)
+        conn.commit()
+        cursor.close()
+        conn.close()
     
-    def _create_dataset_table(self, dataset_name):
+    def _create_metadata_table(self, dataset_name):
         # Create a connection to the PostgreSQL database
         conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
         cursor = conn.cursor()
@@ -65,6 +82,11 @@ class PSQLDatabase:
                 INSERT INTO {table_name} (image_index, image_path)
                 VALUES (%s, %s)
             ''', (idx, path))
+        
+        cursor.execute(f'''
+            INSERT INTO {self.dataset_table} (name)
+            VALUES (%s)
+        ''', (dataset_name,))
 
         conn.commit()
         cursor.close()
@@ -98,8 +120,7 @@ class PSQLDatabase:
         return results
 
     def store_image_paths(self, dataset_name, image_paths):
-        self._create_database_if_not_exists()
-        self._create_dataset_table(dataset_name)
+        self._create_metadata_table(dataset_name)
         self._insert_images(dataset_name, image_paths)
 
     
@@ -109,4 +130,24 @@ class PSQLDatabase:
         # Create a dictionary mapping image_index to image_path
         image_paths = {index: path for index, path in results}
         return image_paths
+    
+    def get_all_datasets(self):
+        # List to store dataset names
+        available_datasets = []
+
+        # Connect to the database
+        conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
+        cursor = conn.cursor()
+
+        # Query to get all dataset names from the dataset_table
+        cursor.execute(f"SELECT name FROM {self.dataset_table}")
+        
+        # Fetch all dataset names and add them to the available_datasets list
+        available_datasets = [row[0] for row in cursor.fetchall()]
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        return available_datasets
     

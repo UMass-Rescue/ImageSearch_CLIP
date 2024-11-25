@@ -1,6 +1,5 @@
-coco
+datasets
 *.index
 .env
 __pycache__
 inputs
-faiss_index
