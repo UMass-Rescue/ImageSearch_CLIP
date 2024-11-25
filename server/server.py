@@ -15,7 +15,7 @@ server.add_app_metadata(
     name="Image Search using CLIP",
     author="Sahithi Singireddy, Sravani Gona",
     version="0.1.0",
-    info=load_file_as_string("README.md"),
+    info=load_file_as_string("server/app_info.md"),
 )
 
 available_datasets: List[str] = []
