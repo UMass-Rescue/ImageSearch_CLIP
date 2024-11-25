@@ -75,4 +75,4 @@ The app compares the query against the dataset embeddings, performs a similarity
 
 If you encounter any issues, have questions, or wish to suggest features, please raise an issue on our [GitHub repository](https://github.com/UMass-Rescue/ImageSearch_CLIP). 
 
-Thank you for using the Image Search CLIP App!
+Thank you for using the Image Search App!
