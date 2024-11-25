@@ -6,9 +6,9 @@ This project provides a robust and scalable solution for efficient image search 
 
 The system is designed to handle large-scale datasets and leverages the power of machine learning for embedding generation and FAISS for high-speed similarity search.
 
-## How to Use the App
+# How to Use the App
 
-### Step 1: Preprocess the Dataset
+## Step 1: Preprocess the Dataset
 
 Before you can perform searches, the dataset must be preprocessed.
 
@@ -21,20 +21,30 @@ Before you can perform searches, the dataset must be preprocessed.
 
    > **Note**: Preprocessing can take time depending on the dataset size and compute resources. Ensure you allocate sufficient resources before starting.
 
----
+## Step 2: Perform a Search
 
-### Step 2: Perform a Search
+After preprocessing your dataset, you can perform searches using one of two endpoints: **search by text** or **search by image**.
 
-After preprocessing, you can perform searches on the dataset.
+### **Search by Text**
+Use this endpoint to search the dataset using a descriptive text query.
 
-- **Submit a Search Query**:  
-   Provide the following details in the search request:
-   - **Query Type**: Either a text description or an image file.
-   - **Dataset Name**: The same name used during preprocessing.
-   - **Number of Results**: Specify how many top results you want.
+**Input Details**:
+- **Query Type**: Provide a text description. For example, *"A cat sitting on a couch"*.
+- **Dataset Name**: Specify the name of the dataset used during preprocessing.
+- **Number of Results**: Define how many top matches to return.
 
-- **Output**:  
-   The app will search the indexed data and return paths to the most relevant images.
+### **Search by Image**
+Use this endpoint to search the dataset by providing an image as a query.
+
+**Input Details**:
+- **Query Type**: An image file path to serve as the query.
+- **Dataset Name**: Specify the dataset name used during preprocessing.
+- **Number of Results**: Define the number of top matches to return.
+
+
+**Output for Both Endpoints**:  
+The app compares the query against the dataset embeddings, performs a similarity search, and returns the file paths of the top-matching images from the original dataset.
+
 
 ## Example Use Cases
 
@@ -44,15 +54,25 @@ After preprocessing, you can perform searches on the dataset.
      - `Image Directory`: `/data/images/`  
      - `Dataset Name`: `wildlife_photos`
 
-- **Performing a Search**:  
-   - Query Input: Text or image.  
+- **Performing a Search by text**:  
+   - Query Input: Text  
    - Example:  
-     - `Query Type`: Text - "A lion in the grasslands"  
+     - `Query`: "A lion in the grasslands"  
      - `Dataset Name`: `wildlife_photos`  
-     - `Number of Results`: 5
+     - `Number of Results`: 3
+  - Output:
+     - Paths to the 3 most relevant images matching the description.
+       
+- **Performing a Search by image**:  
+   - Query Input: Image
+   - Example: 
+     - `Query`: `images/query.jpg`
+     - `Dataset Name`: `wildlife_photos`
+   - Output:
+     - Paths to the 5 (default) most relevant images matching the description.
 
 ## Support
 
 If you encounter any issues, have questions, or wish to suggest features, please raise an issue on our [GitHub repository](https://github.com/UMass-Rescue/ImageSearch_CLIP). 
 
-Thank you for using the Scalable Image Search App!
+Thank you for using the Image Search CLIP App!
