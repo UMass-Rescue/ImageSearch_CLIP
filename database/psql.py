@@ -45,7 +45,8 @@ class PSQLDatabase:
         # Create the table if it does not exist
         create_table_query = f"""
         CREATE TABLE IF NOT EXISTS {self.dataset_table} (
-            name TEXT PRIMARY KEY
+            name TEXT PRIMARY KEY,
+            size INTEGER
         );
         """
         cursor.execute(create_table_query)
@@ -71,7 +72,7 @@ class PSQLDatabase:
         cursor.close()
         conn.close()
 
-    def _insert_images(self, dataset_name, image_paths):
+    def _insert_images(self, dataset_name, dataset_size, image_paths):
         # Insert image metadata into a specific dataset's table
         conn = psycopg2.connect(host=self.DB_HOST, port=self.DB_PORT, dbname=self.DB_NAME, user=self.DB_USER, password=self.DB_PASSWORD)
         cursor = conn.cursor()
@@ -84,9 +85,9 @@ class PSQLDatabase:
             ''', (idx, path))
         
         cursor.execute(f'''
-            INSERT INTO {self.dataset_table} (name)
-            VALUES (%s)
-        ''', (dataset_name,))
+            INSERT INTO {self.dataset_table} (name, size)
+            VALUES (%s, %s)
+        ''', (dataset_name, dataset_size))
 
         conn.commit()
         cursor.close()
@@ -119,9 +120,9 @@ class PSQLDatabase:
 
         return results
 
-    def store_image_paths(self, dataset_name, image_paths):
+    def store_image_paths(self, dataset_name, dataset_size, image_paths):
         self._create_metadata_table(dataset_name)
-        self._insert_images(dataset_name, image_paths)
+        self._insert_images(dataset_name, dataset_size, image_paths)
 
     
     def fetch_image_paths(self, dataset_name, indices):
@@ -140,14 +141,17 @@ class PSQLDatabase:
         cursor = conn.cursor()
 
         # Query to get all dataset names from the dataset_table
-        cursor.execute(f"SELECT name FROM {self.dataset_table}")
+        cursor.execute(f"SELECT name, size FROM {self.dataset_table}")
         
         # Fetch all dataset names and add them to the available_datasets list
-        available_datasets = [row[0] for row in cursor.fetchall()]
+        available_datasets = {row[0]: row[1] for row in cursor.fetchall()}
 
         # Close the cursor and connection
         cursor.close()
         conn.close()
 
         return available_datasets
+    
+    def get_dataset_size(self, dataset_name):
+        return self.get_all_datasets()[dataset_name]
     

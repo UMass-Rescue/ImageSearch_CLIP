@@ -4,7 +4,7 @@ import os
 from PIL import Image
 from database.faiss import FAISSDatabase
 from database.psql import PSQLDatabase
-from util.util import remove_spaces, is_image_file
+from util.util import is_valid_dataset_name, is_image_file
 
 class CLIPModel:
     def __init__(self):
@@ -69,15 +69,16 @@ class CLIPModel:
         
         return image_embedding
     
-    def _save_to_db(self, dataset_name, image_embeddings, image_paths):
+    def _save_to_db(self, dataset_name, dataset_size, image_embeddings, image_paths):
         # Write Faiss index
         self.faiss_db.write_to_faiss(dataset_name, image_embeddings)
 
         # Insert image paths into the psql table
-        self.psql_db.store_image_paths(dataset_name, image_paths)
+        self.psql_db.store_image_paths(dataset_name, dataset_size, image_paths)
     
     def preprocess_images(self, image_dir: str, dataset_name: str):
-        dataset_name = remove_spaces(dataset_name)
+        if not is_valid_dataset_name(dataset_name):
+            raise ValueError("Dataset name must be a single alphanumeric word without spaces or special characters")
 
         # Load and preprocess all images
         image_paths, processed_images = self._load_and_preprocess_images(image_dir)
@@ -87,16 +88,18 @@ class CLIPModel:
 
         # Generate embeddings for all preprocessed images
         image_embeddings = self._generate_image_embeddings(processed_images)
-        print(f"Generated embeddings for {image_embeddings.shape[0]} images.")
+        dataset_size = image_embeddings.shape[0]
+        print(f"Generated embeddings for {dataset_size} images.")
 
-        self._save_to_db(dataset_name, image_embeddings, image_paths)
+        self._save_to_db(dataset_name, dataset_size, image_embeddings, image_paths)
         print(f"Embeddings saved to database")
 
-        return f"{dataset_name} dataset processed successfully!!"
+        return f"{dataset_name} dataset with {dataset_size} images processed successfully!!"
     
     def _search(self, dataset_name, embedding, k):
-        dataset_name = remove_spaces(dataset_name)
-
+        if k > self.psql_db.get_dataset_size(dataset_name):
+            raise ValueError("num results requested is larger than datset size")
+        
         top_k_distances, top_k_indices = self.faiss_db.search_faiss(dataset_name, embedding, k)
 
         images_data = self.psql_db.fetch_image_paths(dataset_name, top_k_indices)
