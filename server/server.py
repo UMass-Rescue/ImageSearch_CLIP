@@ -76,7 +76,7 @@ def get_search_by_text_task_schema() -> TaskSchema:
                 value=EnumParameterDescriptor(
                     enum_vals=[
                         EnumVal(key=dataset_name, label=dataset_name)
-                        for dataset_name in db.get_all_datasets()
+                        for dataset_name in db.get_all_datasets().keys()
                     ],
                     message_when_empty="No datasets found",
                     default=available_datasets[0] if len(available_datasets) > 0 else "",
@@ -125,7 +125,7 @@ def get_search_by_image_task_schema() -> TaskSchema:
                 value=EnumParameterDescriptor(
                     enum_vals=[
                         EnumVal(key=dataset_name, label=dataset_name)
-                        for dataset_name in db.get_all_datasets()
+                        for dataset_name in db.get_all_datasets().keys()
                     ],
                     message_when_empty="No datasets found",
                     default=available_datasets[0] if len(available_datasets) > 0 else "",

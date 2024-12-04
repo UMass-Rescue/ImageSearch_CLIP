@@ -3,8 +3,8 @@ from PIL import Image
 def dataset_storage_name(dataset_name):
     return f"{dataset_name}_dataset" 
 
-def remove_spaces(dataset_name):
-    return dataset_name.replace(" ", "_")
+def is_valid_dataset_name(dataset_name):
+    return dataset_name.isalnum() and ' ' not in dataset_name
 
 def is_image_file(file_path):
     valid_extensions = ('.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff', '.webp')
@@ -21,3 +21,4 @@ def is_image_file(file_path):
     except (IOError, SyntaxError):
         return False
     
+      

@@ -68,11 +68,3 @@ def evaluate_image_search(dataset_path, dataset_name, num_results):
         "average_recall": avg_recall,
     }
 
-
-# Example usage
-dataset_path = "./datasets/coco/train"
-dataset_name = "coco_data"
-num_results = 5  # Maximum results returned by search
-
-metrics_summary = evaluate_image_search(dataset_path, dataset_name, num_results)
-print("Metrics Summary:", metrics_summary)
