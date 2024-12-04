@@ -99,3 +99,18 @@ python cli_search.py --query "man in red shirt" --name coco --num_results 3
 python cli_search.py -i ./image.jpg -n coco -k 3
 ```
 > default number of results is 5.
+
+## Model Evaluation Script
+> The script 'cli/cli_evaluation.py' is a command-line interface (CLI) tool to evaluate image search model metrics for a given dataset. This takes as an input, the path to the dataset directory on which the model is to be evaluated and the dataset_name which acts as an identifier to the dataset.
+> This script evaluates the top-1 accuracy, top-5 accuracy and recall of the model. 
+
+**Running the Script**
+```
+python -m cli.cli_evaluation -i <input_directory> -n <dataset_name>
+
+```
+**Example**
+```
+python -m cli.cli_evaluation -i ./coco/train -n coco
+
+```
