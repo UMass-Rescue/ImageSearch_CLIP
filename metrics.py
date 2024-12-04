@@ -2,7 +2,7 @@ import os
 from model.model import CLIPModel
 from pathlib import Path
 
-def evaluate_image_search(dataset_path, dataset_name, num_results):
+def evaluate_image_search(dataset_path, dataset_name):
     """
     Evaluate Top-1, Top-5 Accuracy, Precision, and Recall for the image search system.
 
@@ -29,12 +29,12 @@ def evaluate_image_search(dataset_path, dataset_name, num_results):
         total_queries += 1
 
         # Get the top num_results similar images
-        retrieved_images = model.search_by_image(image_path, dataset_name, num_results)
+        retrieved_images = model.search_by_image(image_path, dataset_name, 5)
         retrieved_images = [Path(img["result"]).resolve() for img in retrieved_images]
 
         # Assume each image's nearest match is itself
         relevant_images = {Path(image_path).resolve()}  # Ground truth relevant images
-        retrieved_set = set(retrieved_images[:num_results])
+        retrieved_set = set(retrieved_images[:5])
 
         # Check Top-1 and Top-5 accuracy
         if relevant_images & set(retrieved_images[:1]):
@@ -64,7 +64,6 @@ def evaluate_image_search(dataset_path, dataset_name, num_results):
         "total_queries": total_queries,
         "top_1_accuracy": top_1_accuracy,
         "top_5_accuracy": top_5_accuracy,
-        # "average_precision": avg_precision,
         "average_recall": avg_recall,
     }
 
