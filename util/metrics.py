@@ -1,29 +1,32 @@
 import os
 from model.model import CLIPModel
 from pathlib import Path
+from util.util import is_image_file
 
 def evaluate_image_search(dataset_path, dataset_name):
     """
-    Evaluate Top-1, Top-5 Accuracy, Precision, and Recall for the image search system.
+    Evaluate Top-1, Top-5 Accuracy and Recall for the image search system.
 
     Args:
         dataset_path (str): Path to the dataset containing all images.
         dataset_name (str): Name of the dataset to pass to the search function.
-        num_results (int): Maximum number of similar images to retrieve.
-        search_function (callable): Function to perform the search (e.g., search_by_image).
 
     Returns:
-        dict: A summary of Top-1, Top-5 Accuracy, Precision, and Recall metrics.
+        dict: A summary of Top-1, Top-5 Accuracy and Recall metrics.
     """
     total_queries = 0
     top_1_correct = 0
     top_5_correct = 0
-    total_precision = 0
     total_recall = 0
     model = CLIPModel()
 
-    # List all image files in the dataset
-    image_files = [os.path.join(dataset_path, f) for f in os.listdir(dataset_path) if f.endswith(('jpg', 'png', 'jpeg'))]
+    # List all image files in the dataset directory
+    image_files = []
+    for root, _, files in os.walk(dataset_path):
+        for img_file in files:
+            img_path = os.path.join(root, img_file)
+            if is_image_file(img_path):
+                image_files.append(img_path)
 
     for image_path in image_files:
         total_queries += 1
@@ -42,20 +45,14 @@ def evaluate_image_search(dataset_path, dataset_name):
         if relevant_images & set(retrieved_images[:5]):
             top_5_correct += 1
 
-        # Calculate Precision and Recall
+        # Calculate Recall
         tp = len(relevant_images & retrieved_set)  # Relevant and retrieved
-        fp = len(retrieved_set - relevant_images)  # Retrieved but not relevant
         fn = len(relevant_images - retrieved_set)  # Relevant but not retrieved
 
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-
-        # Accumulate metrics
-        # total_precision += precision
         total_recall += recall
 
     # Average metrics across all queries
-    avg_precision = total_precision / total_queries if total_queries > 0 else 0
     avg_recall = total_recall / total_queries if total_queries > 0 else 0
     top_1_accuracy = top_1_correct / total_queries if total_queries > 0 else 0
     top_5_accuracy = top_5_correct / total_queries if total_queries > 0 else 0
