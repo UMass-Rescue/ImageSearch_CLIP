@@ -50,59 +50,79 @@ pipenv install
 
 **Starting server**
 ```
-python server.py
+python -m server.server
 ```
 **Client example**
 > Preprocess the dataset first, then perform searches later.
 
-*1. image dataset preprocessing*
+*1. image dataset preprocessing* (Update the path to the test dataset in preprocess.py)
 ```
-python preprocess.py
+python example/preprocess.py
 ```
 
-*2. test search feature*
+*2. test search feature* (Update the text query and the path to the image that you want to use for image search in search.py)
 ```
-python search.py
+python example/search.py
 ```
 ## Command line Interface
-> Preprocess the dataset first giving it a name, then perform searches later using the same dataset name.
+> Preprocess the dataset first by giving path to the dataset directory (--input_dir) and assign it a dataset name (--name), then later perform search by text (--query) or search by image (--image) using the same dataset name(--name).
 
 **preprocess image dataset**
 ```
-python cli_preprocess.py --input_dir ./images --name coco
+python -m cli.cli_preprocess --input_dir ./dataset --name testDataset
 ```
 ```
-python cli_preprocess.py -i ./images -n coco
+python -m cli.cli_preprocess -i ./dataset -n testDataset
 ```
 
 **search by text**
 ```
-python cli_search.py --query "man in red shirt" --name coco
+python -m cli.cli_search --query "finger licking dessert" --name testDataset
 ```
 ```
-python cli_search.py -q "man in red shirt" -n coco
+python -m cli.cli_search -q "finger licking dessert" -n testDataset
 ```
 
 **search by image**
 ```
-python cli_search.py --image ./image.jpg --name coco
+python -m cli.cli_search --image ./test_image.jpg --name testDataset
 ```
 ```
-python cli_search.py -i ./image.jpg -n coco
+python -m cli.cli_search -i ./test_image.jpg -n testDataset
 ```
 
 **Optional - Specify number of results**
 ```
-python cli_search.py --query "man in red shirt" --name coco --num_results 3
+python -m cli.cli_search --query "finger licking dessert" --name testDataset --num_results 3
 ```
 ```
-python cli_search.py -i ./image.jpg -n coco -k 3
+python -m cli.cli_search -i ./test_image.jpg -n testDataset -k 3
 ```
 > default number of results is 5.
 
-## Model Evaluation Script
-> The script 'cli/cli_evaluation.py' is a command-line interface (CLI) tool to evaluate image search model metrics for a given dataset. This takes as an input, the path to the dataset directory on which the model is to be evaluated and the dataset_name which acts as an identifier to the dataset.
-> This script evaluates the top-1 accuracy, top-5 accuracy and recall of the model. 
+## Model Evaluation
+**Evaluation Process**
+
+The evaluation of the Image Search model was conducted using a dataset of images. For each image in the dataset, the model was tasked with retrieving a set of results from the same dataset. The goal was to determine if the input image (query image) appeared in the retrieved results. The retrieved results for each query image were then compared to the query image itself, and the evaluation metrics were calculated based on whether the input image was present in the top results.
+
+**Metrics Calculated**
+  - Top-1 Accuracy: Percentage of queries where the input image was the top retrieved result.
+  - Top-5 Accuracy: Percentage of queries where the input image appeared within the top 5 retrieved results.
+  - Recall: Measures the overall ability of the model to retrieve the input image from the dataset.
+
+**Results**
+
+| **Metric**       | **Value** |  
+|-------------------|-----------|  
+| Top-1 Accuracy    | 1.0       |  
+| Top-5 Accuracy    | 1.0       |  
+| Recall            | 1.0       |  
+
+**Steps to reproduce the results**
+
+The script 'cli/cli_evaluation.py' is a command-line interface (CLI) tool to evaluate the Image Search model for a given dataset. This takes as an input, the path to the dataset directory (--input_dir) on which the model is to be evaluated and a dataset name (--name) which acts as an identifier to the dataset.
+
+This script evaluates the top-1 accuracy, top-5 accuracy and recall of the model. 
 
 **Running the Script**
 ```
@@ -111,6 +131,6 @@ python -m cli.cli_evaluation -i <input_directory> -n <dataset_name>
 ```
 **Example**
 ```
-python -m cli.cli_evaluation -i ./coco/train -n coco
+python -m cli.cli_evaluation -i ./dataset -n testDataset
 
 ```
