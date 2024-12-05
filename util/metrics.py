@@ -1,7 +1,9 @@
 import os
-from model.model import CLIPModel
 from pathlib import Path
+
+from model.model import CLIPModel
 from util.util import is_image_file
+
 
 def evaluate_image_search(dataset_path, dataset_name):
     """
@@ -63,4 +65,3 @@ def evaluate_image_search(dataset_path, dataset_name):
         "top_5_accuracy": top_5_accuracy,
         "average_recall": avg_recall,
     }
-

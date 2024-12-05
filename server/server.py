@@ -1,12 +1,18 @@
-from typing import TypedDict, List
-from flask_ml.flask_ml_server import MLServer, load_file_as_string
-from flask_ml.flask_ml_server.models import (
-    TaskSchema, DirectoryInput, TextInput, FileType, FileInput, InputSchema, InputType, 
-    ParameterSchema, TextParameterDescriptor, EnumParameterDescriptor, EnumVal, IntParameterDescriptor, 
-    ResponseBody, TextResponse, FileResponse, BatchFileResponse)
+from typing import List, TypedDict
 
-from model.model import CLIPModel
+from flask_ml.flask_ml_server import MLServer, load_file_as_string
+from flask_ml.flask_ml_server.models import (BatchFileResponse, DirectoryInput,
+                                             EnumParameterDescriptor, EnumVal,
+                                             FileInput, FileResponse, FileType,
+                                             InputSchema, InputType,
+                                             IntParameterDescriptor,
+                                             ParameterSchema, ResponseBody,
+                                             TaskSchema, TextInput,
+                                             TextParameterDescriptor,
+                                             TextResponse)
+
 from database.psql import PSQLDatabase
+from model.model import CLIPModel
 
 model = CLIPModel()
 db = PSQLDatabase()
@@ -19,6 +25,7 @@ server.add_app_metadata(
 )
 
 available_datasets: List[str] = []
+
 
 def get_dataset_processing_task_schema() -> TaskSchema:
     return TaskSchema(
@@ -38,27 +45,34 @@ def get_dataset_processing_task_schema() -> TaskSchema:
         ],
     )
 
+
 class DatasetProcessingInput(TypedDict):
     input_dir: DirectoryInput
+
 
 class DatasetProcessingParameters(TypedDict):
     dataset_name: str
 
+
 @server.route(
-        "/dataset_processing",
-        order=0,
-        short_title="Ingest Dataset into the model",
-        task_schema_func=get_dataset_processing_task_schema)
-def dataset_processing(inputs: DatasetProcessingInput, parameters: DatasetProcessingParameters) -> ResponseBody:
+    "/dataset_processing",
+    order=0,
+    short_title="Ingest Dataset into the model",
+    task_schema_func=get_dataset_processing_task_schema,
+)
+def dataset_processing(
+    inputs: DatasetProcessingInput, parameters: DatasetProcessingParameters
+) -> ResponseBody:
     dataset_name = parameters["dataset_name"]
 
     if dataset_name in db.get_all_datasets():
         raise ValueError("Dataset name already exists.")
-    
-    directory_path = inputs['input_dir'].path
-    result = model.preprocess_images(directory_path, parameters['dataset_name'])
+
+    directory_path = inputs["input_dir"].path
+    result = model.preprocess_images(directory_path, parameters["dataset_name"])
     response = TextResponse(value=result)
     return ResponseBody(root=response)
+
 
 def get_search_by_text_task_schema() -> TaskSchema:
     return TaskSchema(
@@ -79,7 +93,9 @@ def get_search_by_text_task_schema() -> TaskSchema:
                         for dataset_name in db.get_all_datasets().keys()
                     ],
                     message_when_empty="No datasets found",
-                    default=available_datasets[0] if len(available_datasets) > 0 else "",
+                    default=(
+                        available_datasets[0] if len(available_datasets) > 0 else ""
+                    ),
                 ),
             ),
             ParameterSchema(
@@ -90,24 +106,34 @@ def get_search_by_text_task_schema() -> TaskSchema:
         ],
     )
 
+
 class TxtInput(TypedDict):
     text_query: TextInput
+
 
 class SearchParameters(TypedDict):
     dataset_name: str
     num_results: int
 
+
 @server.route(
-        "/search_by_text",
-        order=1,
-        short_title="Search Images by Text Query",
-        task_schema_func=get_search_by_text_task_schema)
+    "/search_by_text",
+    order=1,
+    short_title="Search Images by Text Query",
+    task_schema_func=get_search_by_text_task_schema,
+)
 def search_by_text(inputs: TxtInput, parameters: SearchParameters) -> ResponseBody:
-    text_query = inputs['text_query'].text
-    results = model.search_by_text(text_query, parameters['dataset_name'], parameters['num_results'])
-    image_results = [FileResponse(title=res["title"], file_type=FileType.IMG, path=res["result"]) for res in results]
+    text_query = inputs["text_query"].text
+    results = model.search_by_text(
+        text_query, parameters["dataset_name"], parameters["num_results"]
+    )
+    image_results = [
+        FileResponse(title=res["title"], file_type=FileType.IMG, path=res["result"])
+        for res in results
+    ]
     response = BatchFileResponse(files=image_results)
     return ResponseBody(root=response)
+
 
 def get_search_by_image_task_schema() -> TaskSchema:
     return TaskSchema(
@@ -128,7 +154,9 @@ def get_search_by_image_task_schema() -> TaskSchema:
                         for dataset_name in db.get_all_datasets().keys()
                     ],
                     message_when_empty="No datasets found",
-                    default=available_datasets[0] if len(available_datasets) > 0 else "",
+                    default=(
+                        available_datasets[0] if len(available_datasets) > 0 else ""
+                    ),
                 ),
             ),
             ParameterSchema(
@@ -139,19 +167,28 @@ def get_search_by_image_task_schema() -> TaskSchema:
         ],
     )
 
+
 class ImageInput(TypedDict):
     image_path: FileInput
 
+
 @server.route(
-        "/search_by_image",
-        order=2,
-        short_title="Search Images by Image File",
-        task_schema_func=get_search_by_image_task_schema)
+    "/search_by_image",
+    order=2,
+    short_title="Search Images by Image File",
+    task_schema_func=get_search_by_image_task_schema,
+)
 def search_by_image(inputs: ImageInput, parameters: SearchParameters) -> ResponseBody:
-    image_path = inputs['image_path'].path
-    results = model.search_by_image(image_path, parameters['dataset_name'], parameters['num_results'])
-    image_results = [FileResponse(title=res["title"], file_type=FileType.IMG, path=res["result"]) for res in results]
+    image_path = inputs["image_path"].path
+    results = model.search_by_image(
+        image_path, parameters["dataset_name"], parameters["num_results"]
+    )
+    image_results = [
+        FileResponse(title=res["title"], file_type=FileType.IMG, path=res["result"])
+        for res in results
+    ]
     response = BatchFileResponse(files=image_results)
     return ResponseBody(root=response)
+
 
 server.run()

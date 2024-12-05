@@ -2,6 +2,7 @@ import argparse
 
 from model.model import CLIPModel
 
+
 def main():
     parser = argparse.ArgumentParser(description="Test")
 
@@ -11,16 +12,14 @@ def main():
     args = parser.parse_args()
 
     if args.input_dir is None or args.name is None:
-        raise ValueError(
-            "Input must have a valid input directory and a dataset name"
-        )
+        raise ValueError("Input must have a valid input directory and a dataset name")
 
     model = CLIPModel()
 
     model.preprocess_images(args.input_dir, args.name)
-    
+
     print("Preprocessing completed!")
+
 
 if __name__ == "__main__":
     main()
-    
