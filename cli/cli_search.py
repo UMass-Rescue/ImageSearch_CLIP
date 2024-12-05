@@ -2,9 +2,10 @@ import argparse
 
 from model.model import CLIPModel
 
+
 def main():
     parser = argparse.ArgumentParser(description="Test")
-    
+
     parser.add_argument("-i", "--image", type=str, help="Input image path")
     parser.add_argument("-q", "--query", type=str, help="Input text query")
     parser.add_argument("-n", "--name", type=str, help="Input dataset name")
@@ -17,10 +18,8 @@ def main():
             "Input must have a valid query and a preprocessed dataset name"
         )
     if args.query is None and args.image is None:
-        raise ValueError(
-            "Input must have a valid text query or image query path"
-        )
-    
+        raise ValueError("Input must have a valid text query or image query path")
+
     if args.num_results is None:
         args.num_results = 5
 
@@ -30,6 +29,6 @@ def main():
     else:
         print(model.search_by_image(args.image, args.name, args.num_results))
 
+
 if __name__ == "__main__":
     main()
-    
