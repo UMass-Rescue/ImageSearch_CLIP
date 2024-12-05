@@ -1,5 +1,5 @@
 import argparse
-from metrics import evaluate_image_search 
+from util.metrics import evaluate_image_search 
 
 def main():
     parser = argparse.ArgumentParser(description="Test")
