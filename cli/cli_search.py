@@ -20,12 +20,15 @@ def main():
         raise ValueError(
             "Input must have a valid text query or image query path"
         )
+    
+    if args.num_results is None:
+        args.num_results = 5
 
     model = CLIPModel()
     if args.query is not None:
-        model.search_by_text(args.query, args.name, args.num_results)
+        print(model.search_by_text(args.query, args.name, args.num_results))
     else:
-        model.search_by_image(args.image, args.name, args.num_results)
+        print(model.search_by_image(args.image, args.name, args.num_results))
 
 if __name__ == "__main__":
     main()
