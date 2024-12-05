@@ -117,7 +117,6 @@ class CLIPModel:
         if query is None or query.strip() == "":
             raise ValueError("Invalid input text query.")
         
-        os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
         query_embedding = self._generate_text_embedding(query)
         return self._search(dataset_name, query_embedding, k)
         
