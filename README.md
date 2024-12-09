@@ -1,3 +1,7 @@
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/eff449eb-1804-4947-8841-ee5c8fd1a675">
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/ffbfed9b-0238-4196-8cd5-48c4fbfe5db9">
+
+
 # ImageSearch_CLIP
 This project provides a scalable solution for efficient image search using OpenAI's CLIP model, FAISS, and PostgreSQL. Initially, it processes large image datasets to generate embeddings for each image using the CLIP model. These embeddings are indexed using FAISS for fast similarity searches, while a PostgreSQL database stores mappings of indexes to their file paths.
 
@@ -52,18 +56,37 @@ pipenv install
 ```
 python -m server.server
 ```
-**Client example**
-> Preprocess the dataset first, then perform searches later.
+### Steps to Use the Rescue Box Application with the Flask-ML Server
 
-*1. image dataset preprocessing* (Update the path to the test dataset in preprocess.py)
-```
-python example/preprocess.py
-```
+1. **Launch the Rescue Box Application**  
+   - Download the Rescue Box Application [here](https://github.com/UMass-Rescue/RescueBox-Desktop/releases).
+   - Open the application on your system.
 
-*2. test search feature* (Update the text query and the path to the image that you want to use for image search in search.py)
-```
-python example/search.py
-```
+2. **Register the Server**  
+   - In the Rescue Box application, navigate to the *Register a Model* section.  
+   - Enter the following details:  
+     - **IP Address:** `127.0.0.1`  
+     - **Port Number:** `5000`  
+   - Click the *Connect* button to connect the application to the locally running Flask-ML server.
+
+3. **Select a Job**  
+   - Once the server is registered, choose from one of the three available jobs:  
+     - **Ingest Dataset into the Model (Data Preprocessing):**  
+       - Provide the dataset directory path and dataset name.  
+       - The server will process the images, create embeddings, and store them in the FAISS index.  
+     - **Search Images by Text Query:**  
+       - Enter a descriptive text query and select the dataset name from the dropdown.  
+       - The server will search for similar images based on the text query.  
+     - **Search Images by Image File:**  
+       - Upload an image file and select the dataset name.  
+       - The server will find visually similar images from the dataset.
+
+4. **View Results**  
+   - After running the selected job, the application will display the results (e.g., similar images or processing status).  
+
+5. **Close the Application**  
+   - When done, you can disconnect from the server and close the Rescue Box application.
+
 ## Command line Interface
 > Preprocess the dataset first by giving path to the dataset directory (--input_dir) and assign it a dataset name (--name), then later perform search by text (--query) or search by image (--image) using the same dataset name(--name).
 
@@ -99,6 +122,10 @@ python -m cli.cli_search --query "finger licking dessert" --name testDataset --n
 python -m cli.cli_search -i ./test_image.jpg -n testDataset -k 3
 ```
 > default number of results is 5.
+
+## Processing Times
+- On average, the preprocessing step handles *26.56* images per second.  
+- The average time to process a search request is *0.18* seconds, regardless of the number of results requested or the dataset size, showing minimal impact from these factors.
 
 ## Model Evaluation
 **Evaluation Process**
