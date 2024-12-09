@@ -1,4 +1,5 @@
 import os
+from time import perf_counter
 
 import clip
 import torch
@@ -7,8 +8,6 @@ from PIL import Image
 from database.faiss import FAISSDatabase
 from database.psql import PSQLDatabase
 from util.util import is_image_file, is_valid_dataset_name
-
-from time import perf_counter
 
 
 class CLIPModel:
@@ -145,24 +144,28 @@ class CLIPModel:
     def search_by_text(self, query: str, dataset_name: str, k: int):
         if query is None or query.strip() == "":
             raise ValueError("Invalid input text query.")
-        
+
         start_time = perf_counter()
         query_embedding = self._generate_text_embedding(query)
         result = self._search(dataset_name, query_embedding, k)
 
         end_time = perf_counter()
         execution_time = end_time - start_time
-        print(f"Processing time: {execution_time:.2f} sec, speed: {(k/execution_time):.2f} images/sec")
+        print(
+            f"Processing time: {execution_time:.2f} sec, speed: {(k/execution_time):.2f} images/sec"
+        )
         return result
 
     def search_by_image(self, image_path: str, dataset_name: str, k: int):
         if not is_image_file(image_path):
             raise ValueError("Invalid or corrupted input image.")
-        
+
         start_time = perf_counter()
         image_embedding = self._generate_image_embedding_from_input(image_path)
         result = self._search(dataset_name, image_embedding, k)
         end_time = perf_counter()
         execution_time = end_time - start_time
-        print(f"Processing time: {execution_time:.2f} sec, , speed: {(k/execution_time):.2f} images/sec")
+        print(
+            f"Processing time: {execution_time:.2f} sec, , speed: {(k/execution_time):.2f} images/sec"
+        )
         return result
