@@ -1,7 +1,3 @@
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/eff449eb-1804-4947-8841-ee5c8fd1a675">
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/ffbfed9b-0238-4196-8cd5-48c4fbfe5db9">
-
-
 # ImageSearch_CLIP
 This project provides a scalable solution for efficient image search using OpenAI's CLIP model, FAISS, and PostgreSQL. Initially, it processes large image datasets to generate embeddings for each image using the CLIP model. These embeddings are indexed using FAISS for fast similarity searches, while a PostgreSQL database stores mappings of indexes to their file paths.
 
@@ -86,6 +82,10 @@ python -m server.server
 
 5. **Close the Application**  
    - When done, you can disconnect from the server and close the Rescue Box application.
+   
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/f486cc56-4e64-4884-a465-b6ac128b7cfb">
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/94600da7-4cb1-4009-934a-ed82e76a0685">
+
 
 ## Command line Interface
 > Preprocess the dataset first by giving path to the dataset directory (--input_dir) and assign it a dataset name (--name), then later perform search by text (--query) or search by image (--image) using the same dataset name(--name).
@@ -123,26 +123,49 @@ python -m cli.cli_search -i ./test_image.jpg -n testDataset -k 3
 ```
 > default number of results is 5.
 
-## Processing Times
-- On average, the preprocessing step handles *26.56* images per second.  
+## Model Performance
+- On average, the preprocessing step handles *26.56* images per second.
 - The average time to process a search request is *0.18* seconds, regardless of the number of results requested or the dataset size, showing minimal impact from these factors.
 
 ## Model Evaluation
-**Evaluation Process**
+**1. Evaluation for a custom dataset**
+
+We used a custom dataset (evaluation/Evaluation dataset) of 110 images collected from 10 different categories and preprocessed the model on training set (evaluation/Evaluation dataset/train) consisting of 100 images, 10 from each category and validated the results by performing search using the validation set (evaluation/Evaluation dataset/val) consiting of 10 images, one from each category.
+
+**Metrics Calculated**
+  - Precision@1: Measures the proportion of times the first result returned by the model is relevant.
+  - Precision@5: Measures the proportion of relevant images in the top 5 results retrieved by the model.
+
+**Results**
+
+| **Metric**       | **Value** |  
+|-------------------|-----------|  
+| Precision@1            | 1.0       |  
+| Precision@5    | 1.0       |  
+
+**Steps to reproduce the results**
+
+Run the script evaluation/evaluate.py
+```
+python -m evaluation.evaluate
+
+```
+
+**2. Evaluation for a user-given dataset**
 
 The evaluation of the Image Search model was conducted using a dataset of images. For each image in the dataset, the model was tasked with retrieving a set of results from the same dataset. The goal was to determine if the input image (query image) appeared in the retrieved results. The retrieved results for each query image were then compared to the query image itself, and the evaluation metrics were calculated based on whether the input image was present in the top results.
 
 **Metrics Calculated**
-  - Top-1 Accuracy: Percentage of queries where the input image was the top retrieved result.
-  - Top-5 Accuracy: Percentage of queries where the input image appeared within the top 5 retrieved results.
+  - Hist@1: Percentage of queries where the input image was the top retrieved result.
+  - Hits@5: Percentage of queries where the input image appeared within the top 5 retrieved results.
   - Recall: Measures the overall ability of the model to retrieve the input image from the dataset.
 
 **Results**
 
 | **Metric**       | **Value** |  
 |-------------------|-----------|  
-| Top-1 Accuracy    | 1.0       |  
-| Top-5 Accuracy    | 1.0       |  
+| Hits@1            | 1.0       |  
+| Hits@5    | 1.0       |  
 | Recall            | 1.0       |  
 
 **Steps to reproduce the results**
