@@ -8,6 +8,8 @@ from database.faiss import FAISSDatabase
 from database.psql import PSQLDatabase
 from util.util import is_image_file, is_valid_dataset_name
 
+from time import perf_counter
+
 
 class CLIPModel:
     def __init__(self):
@@ -86,6 +88,7 @@ class CLIPModel:
         self.psql_db.store_image_paths(dataset_name, dataset_size, image_paths)
 
     def preprocess_images(self, image_dir: str, dataset_name: str):
+        start_time = perf_counter()
         if not is_valid_dataset_name(dataset_name):
             raise ValueError(
                 "Dataset name must be a single alphanumeric word without spaces or special characters"
@@ -105,7 +108,11 @@ class CLIPModel:
         self._save_to_db(dataset_name, dataset_size, image_embeddings, image_paths)
         print(f"Embeddings saved to database")
 
-        return f"{dataset_name} dataset with {dataset_size} images processed successfully!!"
+        end_time = perf_counter()
+        execution_time = end_time - start_time
+        speed_text = f"Processing time: {execution_time:.2f} sec, speed: {(dataset_size/execution_time):.2f} images/sec"
+        print(speed_text)
+        return f"{dataset_name} dataset with {dataset_size} images processed successfully!! \n {speed_text}"
 
     def _search(self, dataset_name, embedding, k):
         if k > self.psql_db.get_dataset_size(dataset_name):
@@ -138,13 +145,24 @@ class CLIPModel:
     def search_by_text(self, query: str, dataset_name: str, k: int):
         if query is None or query.strip() == "":
             raise ValueError("Invalid input text query.")
-
+        
+        start_time = perf_counter()
         query_embedding = self._generate_text_embedding(query)
-        return self._search(dataset_name, query_embedding, k)
+        result = self._search(dataset_name, query_embedding, k)
+
+        end_time = perf_counter()
+        execution_time = end_time - start_time
+        print(f"Processing time: {execution_time:.2f} sec, speed: {(k/execution_time):.2f} images/sec")
+        return result
 
     def search_by_image(self, image_path: str, dataset_name: str, k: int):
         if not is_image_file(image_path):
             raise ValueError("Invalid or corrupted input image.")
-
+        
+        start_time = perf_counter()
         image_embedding = self._generate_image_embedding_from_input(image_path)
-        return self._search(dataset_name, image_embedding, k)
+        result = self._search(dataset_name, image_embedding, k)
+        end_time = perf_counter()
+        execution_time = end_time - start_time
+        print(f"Processing time: {execution_time:.2f} sec, , speed: {(k/execution_time):.2f} images/sec")
+        return result
